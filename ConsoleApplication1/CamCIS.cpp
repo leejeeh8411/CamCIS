@@ -14,138 +14,174 @@ CamCIS::~CamCIS()
 	ClearImageBuffer();
 }
 
-void CamCIS::InitClass(int camCnt, int moduleCnt, int moduleCntPerBoard)
+void CamCIS::InitClass(int CamNum, int ModuleNum)
 {
-	//초기 설정값
-	_cntCam = camCnt;
-	_cntModule = moduleCnt;
-	_cntModulePerBoard = moduleCntPerBoard;
-
-	int boardIdx = 0;
-
-	for (int camIdx = 0; camIdx < _cntCam; camIdx++) {
-		int nModuleCnt = 0;
-		for (int nModuleIdx = 0; nModuleIdx < _cntModule; nModuleIdx++) {
-			if (nModuleCnt >= _cntModulePerBoard) {
-				nModuleCnt = 0;
-				boardIdx++;
-			}
-
+	for (int camIdx = 0; camIdx < CamNum; camIdx++) {
+		CamList camList;
+		for (int nModuleIdx = 0; nModuleIdx < ModuleNum; nModuleIdx++) {
 			string dcfPath(fmt::format("{}{}{}{}", DCF_FILE_PATH, "Glim_", nModuleIdx, ".dcf"));
-			SetPathDCF(camIdx, boardIdx, dcfPath);
+			camList.CamNo = camIdx;
+			camList.ModuleNo = nModuleIdx;
+			camList.PathDCF = dcfPath;
 
-			nModuleCnt++;
+			_camList.emplace_back(camList);
 		}
 	}
-
+	
 	//확인
-	for (int i = 0; i < _camInfo.size(); i++) {
-		CamInfo bdInfo = _camInfo[i];
+	for (int i = 0; i < _camList.size(); i++) {
+		CamList camList = _camList[i];
 		int a = 10;
 	}
 }
 
-void CamCIS::SetPathDCF(int camIdx, int boardIdx, string pathDcf)
+
+void CamCIS::InitGrabber()
 {
-	int camInfoSize = _camInfo.size();
-	bool bIs = false;
-	for (int i = 0; i < camInfoSize; i++) {
-		if (_camInfo[i].camIdx == camIdx) {
-			bIs = true;
+	//보드설정 테스트 - 나중에 matrox에서 받아오게
+	int testBdNum = 3;
+	int testPortNum = 2;
+	for (int bdIdx = 0; bdIdx < testBdNum; bdIdx++) {
+		BoardList bdList;
+		
+		for (int portIdx = 0; portIdx < testPortNum; portIdx++) {
+			bdList.BoardNo = bdIdx;
+			bdList.PortNo = portIdx;
+
+			_bdList.emplace_back(bdList);
+		}
+	}
+	
+	int camListNum = _camList.size();
+	int boardListNum = _bdList.size();
+		
+	for (int boardListIdx = 0; boardListIdx < boardListNum; boardListIdx++) {
+		//보드 port에 카메라 모듈 하나씩 매칭
+		if (boardListIdx >= camListNum) {
+			break;
+		}
+		
+		//gCamMatrox(boardIdx, i, _camList[boardListIdx].PathDCF, MATROX_BUF_NUM);
+
+		_bdList[boardListIdx].CamNo = _camList[boardListIdx].CamNo;
+		_bdList[boardListIdx].InitGrabber = true;
+
+		//gCamMatrox->getWidth();
+		//gCamMatrox->getHeight();
+		//test
+		_bdList[boardListIdx].ImgWidth = 7000;
+		_bdList[boardListIdx].ImgHeight = 1536;
+
+		//callback 연결
+
+		_logger->info("BoardListIdx:{}, BoardNo:{}, BoardPort:{}, CamNo:{}, ModuleNo:{}, Dcf:{}", 
+			boardListIdx, _bdList[boardListIdx].BoardNo, _bdList[boardListIdx].PortNo,
+			_camList[boardListIdx].CamNo, _camList[boardListIdx].ModuleNo, _camList[boardListIdx].PathDCF);
+	}
+
+	//카메라 개수 가져오기
+	int camNum = GetCamNum();
+
+	//카메라당 이미지 크기만큼 버퍼 생성
+	for (int camIdx = 0; camIdx < camNum; camIdx++) {
+		int width_full = GetCamWidth(camIdx);
+		int height_full = GetCamHeight(camIdx);
+		MakeImageBuffer(width_full, height_full);
+	}
+}
+
+//카메라 개수 리턴
+int CamCIS::GetCamNum()
+{
+	int camListNum = _camList.size();
+
+	int camCnt = 0;
+
+	vector<int> vtCamNo;
+
+	for (int i = 0; i < camListNum; i++) {
+		int camNo = _camList[i].CamNo;
+		vtCamNo.emplace_back(camNo);
+	}
+
+	vtCamNo.erase(unique(vtCamNo.begin(), vtCamNo.end()), vtCamNo.end());
+
+	return vtCamNo.size();
+}
+
+//카메라 이미지 폭
+int CamCIS::GetCamWidth(int _camNo)
+{
+	int bdListNum = _bdList.size();
+
+	vector<int> vtCamNo;
+
+	int width = 0;
+
+	for (int i = 0; i < bdListNum; i++) {
+		int camNo = _bdList[i].CamNo;
+
+		if (camNo == _camNo) {
+			width += _bdList[i].ImgWidth;
+		}
+	}
+
+	return width;
+}
+
+//카메라 이미지 높이
+int CamCIS::GetCamHeight(int _camNo)
+{
+	int bdListNum = _bdList.size();
+
+	vector<int> vtCamNo;
+
+	int height = 0;
+
+	for (int i = 0; i < bdListNum; i++) {
+		int camNo = _bdList[i].CamNo;
+
+		if (camNo == _camNo) {
+			height += _bdList[i].ImgHeight;
 			break;
 		}
 	}
 
-	if (bIs == true) {
-		int boardSize = _camInfo[camIdx].boardInfo.size();
-		bool bIs = false;
-		for (int i = 0; i < boardSize; i++) {
-			if (_camInfo[camIdx].boardInfo[i].boardIdx == boardIdx) {
-				bIs = true;
-				break;
-			}
-		}
-		if (bIs == true) {
-			_camInfo[camIdx].boardInfo[boardIdx].pathDcf.emplace_back(pathDcf);
-		}
-		else {
-			BoardInfo bdInfo;
-			bdInfo.boardIdx = boardIdx;
-			bdInfo.pathDcf.emplace_back(pathDcf);
-			_camInfo[camIdx].boardInfo.emplace_back(bdInfo);
-		}
-	}
-	else {
-		CamInfo camInfo;
-		camInfo.camIdx = camIdx;
-
-		BoardInfo bdInfo;
-		bdInfo.boardIdx = boardIdx;
-		bdInfo.pathDcf.emplace_back(pathDcf);
-
-		camInfo.boardInfo.emplace_back(bdInfo);
-	
-		_camInfo.emplace_back(camInfo);
-	}
+	return height;
 }
 
-void CamCIS::InitGrabber()
+unsigned char* CamCIS::GetImagePtr(int camNo)
 {
-	int camInfoSize = _camInfo.size();
-
-	for (int camIdx = 0; camIdx < camInfoSize; camIdx++) {
-		int width_full = 0;
-		int height_full = 0;
-		int boardSize = _camInfo[camIdx].boardInfo.size();
-		
-		for (int boardIdx = 0; boardIdx < boardSize; boardIdx++) {
-			int moduleSize = _camInfo[camIdx].boardInfo[boardIdx].pathDcf.size();
-
-			for (int moduleIdx = 0; moduleIdx < moduleSize; moduleIdx++) {
-				string pathDcf = _camInfo[camIdx].boardInfo[boardIdx].pathDcf[moduleIdx];
-
-				_logger->info("camIdx:{}, boardIdx:{}, dcf:{}", camIdx, boardIdx, pathDcf);
-				
-				//메트록스 초기화
-				//gCamMatrox(boardIdx, i, dcfPath, MATROX_BUF_NUM);
-
-				//image width 결합
-				int width_module = 7000;
-				width_full += width_module;
-				//image height
-				int height_module = 3072;
-				height_full = height_module;
-				//callback 함수 연결
-
-
-			}
-		}
-		_camInfo[camIdx].width = width_full;
-		_camInfo[camIdx].height = height_full;
+	int imageBufSize = _imageBufAddress.size();
+	if (imageBufSize <= camNo) {
+		return nullptr;
 	}
-	
-	for (int camIdx = 0; camIdx < camInfoSize; camIdx++) {
-		int width_full = _camInfo[camIdx].width;
-		int height_full = _camInfo[camIdx].height;
-
-		//이미지를 보관할 버퍼 생성
-		MakeImageBuffer(width_full, height_full);
-		
+	else {
+		return _imageBufAddress[camNo];
 	}
-
 }
 
 void CamCIS::MakeImageBuffer(int width, int height)
 {
-	int imageSize = width * height;
+	int imageSize = width * height * LOOP_NUM;
+
+	if (width <= 0) {
+		_logger->info("MakeImageBuf Error : width:{}, height:{}", width, height);
+		return;
+	}
+	if (height <= 0) {
+		_logger->info("MakeImageBuf Error : width:{}, height:{}", width, height);
+		return;
+	}
 
 	//이미지 버퍼 생성
-	unsigned char* pBuf = _imgBuf = new unsigned char[imageSize];
-	memset(_imgBuf, 0, sizeof(unsigned char) * imageSize);
+	unsigned char* pBuf = new unsigned char[imageSize];
+	memset(pBuf, 0, sizeof(unsigned char) * imageSize);
 
 	_imageBufAddress.emplace_back(pBuf);
+	//_grab_buf = pBuf;
 
-	_logger->info("MakeImageBuf:{}, width:{}, height:{}", (void*)pBuf, width, height);
+	_logger->info("MakeImageBuf:{}, width:{}, height:{}, loopNum:{}", (void*)pBuf, width, height, LOOP_NUM);
 
 }
 
@@ -155,4 +191,8 @@ void CamCIS::ClearImageBuffer()
 		delete[] _imageBufAddress[i];
 		_logger->info("DeleteImageBuf:{}", (void*)_imageBufAddress[i]);
 	}
+
+	//delete[] _grab_buf;
+
+	//_logger->info("DeleteImageBuf:{}", (void*)_grab_buf);
 }

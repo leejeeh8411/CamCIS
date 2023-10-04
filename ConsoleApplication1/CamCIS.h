@@ -9,40 +9,40 @@ using namespace std;
 
 #define DCF_FILE_PATH	"C:\\GLIM\\"
 
-const static int LOOP_NUM = 10;
-const static int MATROX_BUF_NUM = 10;
+const static int LOOP_NUM = 40;
 
-//extern gLogger logger;
-
-//gLogger logger("defaultlog", std::string("C:\\Glim\\") + std::string("defaultLog.txt"), false, 23, 59);
-
-
-struct BoardInfo
+struct BoardList
 {
-	int boardIdx;
-	vector<string> pathDcf;
+	int BoardNo;
+	int PortNo;
+	int ImgWidth;
+	int ImgHeight;
+	int CamNo;
+	bool InitGrabber;
 
-	BoardInfo()
+	BoardList()
 	{
-		boardIdx = 0;
-		pathDcf.clear();
+		BoardNo = 0;
+		PortNo = 0;
+		ImgWidth = 0;
+		ImgHeight = 0;
+		CamNo = 0;
+		InitGrabber = false;
 	}
 };
 
-struct CamInfo 
+struct CamList 
 {
-	int camIdx;
-	int width;
-	int height;
-
-	vector<BoardInfo> boardInfo;
-	CamInfo()
+	int CamNo;
+	int ModuleNo;
+	string PathDCF;
+	
+	CamList()
 	{
-		camIdx = 0;
+		CamNo = 0;
+		ModuleNo = 0;
 	}
 };
-
-
 
 class CamCIS
 {
@@ -62,30 +62,32 @@ public:
 private:
 	gLogger* _logger;
 
-	vector<CamInfo> _camInfo;
+	vector<CamList> _camList;
+	vector<BoardList> _bdList;
 
 	int _frameIdx = 0;
 
-	int _cntCam = 0;
-	int _cntModule = 0;
-	int _cntModulePerBoard = 0;
-
 	//module 별로 이미지 Set Cnt
-	int _setImageCnt[LOOP_NUM];
+	bool _setImageCnt[LOOP_NUM];
 
 	//image buffer
 	vector<unsigned char*> _imageBufAddress;
-	unsigned char* _imgBuf;
+	unsigned char* _grab_buf;
 
 public:
 	//클래스 초기화
 	//camCnt : 카메라 총 개수
 	//moduleCnt : 모듈 카운트(카메라 당)
-	//moduleCntPerBoard : 모듈 카운트(보드 당)
-	void InitClass(int camCnt, int moduleCnt, int moduleCntPerBoard);
+	void InitClass(int CamNum, int ModuleNum);
 
-	//초기화 시점에 CAM_CIS 클래스를 통해 초기화에 필요한 정보를 넣어준다
-	void SetPathDCF(int camIdx, int boardIdx, string pathDcf);
+	//카메라 개수
+	int GetCamNum();
+
+	//카메라 폭
+	int GetCamWidth(int camNo);
+
+	//카메라 이미지 높이
+	int GetCamHeight(int _camNo);
 
 	//그래버 초기화 작업을 한다
 	//넣어준 정보를 바탕으로
@@ -96,6 +98,9 @@ public:
 
 	//동적할당된 이미지 전체 소거
 	void ClearImageBuffer();
+
+	//카메라가 여러개면 버퍼도 여러개
+	unsigned char* GetImagePtr(int camNo);
 
 	//콜백 호출되면 FullGrabBuffer에 카피
 	//각 module별로 원 이미지에 복사한다
