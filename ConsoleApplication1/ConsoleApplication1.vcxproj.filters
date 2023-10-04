@@ -27,6 +27,9 @@
     <ClInclude Include="CamCIS.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="gMatroxTest.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -36,6 +39,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="CamCIS.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="gMatroxTest.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

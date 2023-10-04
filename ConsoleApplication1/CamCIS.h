@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <glogger.h>
+#include "gMatroxTest.h"
 //#include <gCamMatrox.h>
 
 using namespace std;
@@ -10,6 +11,18 @@ using namespace std;
 #define DCF_FILE_PATH	"C:\\GLIM\\"
 
 const static int LOOP_NUM = 40;
+
+
+struct CallBackUserData
+{
+	int CamNo;
+	int ModuleNo;
+	CallBackUserData()
+	{
+		CamNo = 0;
+		ModuleNo = 0;
+	}
+};
 
 struct BoardList
 {
@@ -75,6 +88,12 @@ private:
 	unsigned char* _grab_buf;
 
 public:
+	void CopyMil(unsigned char * pImg, void* userData);
+
+	vector<CallBackUserData*> _callBackUserData;
+
+	vector<gMatroxTest*> _gMatrox;
+
 	//클래스 초기화
 	//camCnt : 카메라 총 개수
 	//moduleCnt : 모듈 카운트(카메라 당)

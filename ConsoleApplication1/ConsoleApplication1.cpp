@@ -30,6 +30,16 @@ int main()
 	_logger->info("getImagePtr3:{}", (void*)pImg3);
 	_logger->info("getImagePtr4:{}", (void*)pImg4);
 
+	//callback 함수 등록 체크
+	int matNum = camCis._gMatrox.size();
+
+	for (int i = 0; i < matNum; i++) {
+		gMatroxTest* pMatrox = camCis._gMatrox[i];
+		pMatrox->OnCallBack();
+	}
+	
+
+
 	camCis.ClearImageBuffer();
 
 	system("pause");

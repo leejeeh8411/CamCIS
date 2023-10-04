@@ -2,6 +2,8 @@
 #include "CamCIS.h"
 
 
+
+
 CamCIS::CamCIS()
 {
 	_logger = new gLogger("defaultlog", std::string("C:\\Glim\\") + std::string("defaultLog.txt"), false, 23, 59);
@@ -72,7 +74,17 @@ void CamCIS::InitGrabber()
 		_bdList[boardListIdx].ImgWidth = 7000;
 		_bdList[boardListIdx].ImgHeight = 1536;
 
+		gMatroxTest* gMatrox = new gMatroxTest();
+		_gMatrox.emplace_back(gMatrox);
+
+		CallBackUserData* userData = new CallBackUserData();
+		userData->CamNo = _bdList[boardListIdx].CamNo;
+		userData->ModuleNo = _bdList[boardListIdx].PortNo;
+		_callBackUserData.emplace_back(userData);
+
 		//callback 연결
+		gMatrox->RegistCallBack(std::bind(&CamCIS::CopyMil, this, std::placeholders::_1, std::placeholders::_2), (void*)userData);
+
 
 		_logger->info("BoardListIdx:{}, BoardNo:{}, BoardPort:{}, CamNo:{}, ModuleNo:{}, Dcf:{}", 
 			boardListIdx, _bdList[boardListIdx].BoardNo, _bdList[boardListIdx].PortNo,
@@ -88,6 +100,12 @@ void CamCIS::InitGrabber()
 		int height_full = GetCamHeight(camIdx);
 		MakeImageBuffer(width_full, height_full);
 	}
+}
+
+void CamCIS::CopyMil(unsigned char * pImg, void* userData)
+{
+	CallBackUserData* pUser = (CallBackUserData*)userData;
+	
 }
 
 //카메라 개수 리턴
