@@ -11,8 +11,8 @@ int main()
 	_logger = new gLogger("defaultlog", std::string("C:\\Glim\\") + std::string("defaultLog.txt"), false, 23, 59);
 	_logger->setConsoleLevel(G_LOGGER_LEVEL_DEBUG);
 
-	int camNum = 4;
-	int moduleNum = 2;
+	int camNum = 1;
+	int moduleNum = 5;
 
 	CamCIS camCis;
 	camCis.InitClass(camNum, moduleNum);
@@ -35,13 +35,13 @@ int main()
 
 	for (int i = 0; i < matNum; i++) {
 		gMatroxTest* pMatrox = camCis._gMatrox[i];
-		pMatrox->OnCallBack();
+		//pMatrox->OnCallBack();
+		pMatrox->StartThreadCallBack();
 	}
 	
 
-
-	camCis.ClearImageBuffer();
-
+	
+	//camCis.ClearImageBuffer();
 	system("pause");
     return 0;
 }

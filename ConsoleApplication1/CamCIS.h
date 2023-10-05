@@ -1,10 +1,14 @@
 #pragma once
 
+
+#include <afxwin.h>
+#include <atlimage.h>
 #include <vector>
 #include <string>
 #include <glogger.h>
 #include "gMatroxTest.h"
 //#include <gCamMatrox.h>
+
 
 using namespace std;
 
@@ -12,6 +16,11 @@ using namespace std;
 
 const static int LOOP_NUM = 40;
 
+
+enum CAM_DATA_TYPE {
+	IMG_PTR_X = 0,
+	IMG_WIDTH = 1
+};
 
 struct CallBackUserData
 {
@@ -24,22 +33,35 @@ struct CallBackUserData
 	}
 };
 
+struct CallBackInfo
+{
+	vector<CallBackUserData> camInfo;
+
+	CallBackInfo()
+	{
+	}
+};
+
 struct BoardList
 {
 	int BoardNo;
 	int PortNo;
+	int CamNo;
+	int ModuleNo;
 	int ImgWidth;
 	int ImgHeight;
-	int CamNo;
+	int ImgPtrX;
 	bool InitGrabber;
 
 	BoardList()
 	{
 		BoardNo = 0;
 		PortNo = 0;
+		CamNo = 0;
+		ModuleNo = 0;
 		ImgWidth = 0;
 		ImgHeight = 0;
-		CamNo = 0;
+		ImgPtrX = 0;
 		InitGrabber = false;
 	}
 };
@@ -78,21 +100,23 @@ private:
 	vector<CamList> _camList;
 	vector<BoardList> _bdList;
 
-	int _frameIdx = 0;
+	int* _frameIdx = nullptr;
 
 	//module 별로 이미지 Set Cnt
-	bool _setImageCnt[LOOP_NUM];
+	CallBackInfo _callBackInfo[LOOP_NUM];
 
 	//image buffer
 	vector<unsigned char*> _imageBufAddress;
-	unsigned char* _grab_buf;
+	//unsigned char* _grab_buf;
 
 public:
-	void CopyMil(unsigned char * pImg, void* userData);
+	void CopyMil(unsigned char * pSrc, void* userData);
 
 	vector<CallBackUserData*> _callBackUserData;
 
 	vector<gMatroxTest*> _gMatrox;
+
+	mutex _mutex;
 
 	//클래스 초기화
 	//camCnt : 카메라 총 개수
@@ -107,6 +131,8 @@ public:
 
 	//카메라 이미지 높이
 	int GetCamHeight(int _camNo);
+
+	int GetCamData(int _camNo, int _moduleNo, int type);
 
 	//그래버 초기화 작업을 한다
 	//넣어준 정보를 바탕으로
@@ -123,10 +149,7 @@ public:
 
 	//콜백 호출되면 FullGrabBuffer에 카피
 	//각 module별로 원 이미지에 복사한다
-	void SetImage(unsigned char* buffer, int moduleIdx, int frameIdx);
+	void SetImage(unsigned char* pSrc, unsigned char* pDst, int widthSrc, int widthDst, int copyWidth, int copyHeight);
 
-	//이미지 1장이 완성되는걸 어떤식으로 파악할지
-	//return : SetImage Cnt
-	int GetSetImageCnt(int frameIdx);
 };
 
