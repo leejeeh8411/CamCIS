@@ -64,7 +64,6 @@ void CamCIS::InitGrabber()
 		int width = 7000;//gCamMatrox->getWidth();
 		int height = 512;//gCamMatrox->getHeight();
 
-		//test
 		_bdList[boardListIdx].ImgWidth = width;
 		_bdList[boardListIdx].ImgHeight = height;
 
@@ -176,6 +175,10 @@ void CamCIS::CopyMil(unsigned char * pSrc, void* _userData)
 		_logger->info("CopyMil_CallBack Done : frame:{}, CamNo:{}, DoneCnt:{}, ModuleCnt:{}", 
 			frame, camNo, doneCnt, moduleCnt);
 		_callBackInfo[frame].camInfo.clear();
+		ImageList imgList;
+		imgList.frame = _frameIdx[camNo];
+		imgList.pAddress = pDst;
+		qImageList.push(imgList);
 		_frameIdx[camNo]++;
 		bInspect = true;
 	}
@@ -184,6 +187,9 @@ void CamCIS::CopyMil(unsigned char * pSrc, void* _userData)
 
 	//이미지 저장해보자
 	if (bInspect == true) {
+
+		OnCallBack();
+
 		CImage image;
 		image.Create(WidthFull, -HeightFull, 8);
 		unsigned char* pImageDst = (unsigned char*)image.GetBits();
@@ -347,4 +353,18 @@ void CamCIS::ClearImageBuffer()
 	//delete[] _grab_buf;
 
 	//_logger->info("DeleteImageBuf:{}", (void*)_grab_buf);
+}
+
+ImageList CamCIS::GetQueue()
+{
+	ImageList imgData;
+
+	int nSize = qImageList.size();
+
+	if (nSize > 0) {
+		imgData = qImageList.front();
+		qImageList.pop();
+	}
+	
+	return imgData;
 }

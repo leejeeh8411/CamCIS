@@ -30,6 +30,12 @@
     <ClInclude Include="gMatroxTest.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="mainWork.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Inspect.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -42,6 +48,12 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="gMatroxTest.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="mainWork.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Inspect.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

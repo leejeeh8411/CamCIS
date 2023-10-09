@@ -1,12 +1,14 @@
 #pragma once
 
 
-#include <afxwin.h>
+//#include <afxwin.h>
 #include <atlimage.h>
 #include <vector>
 #include <string>
 #include <glogger.h>
 #include "gMatroxTest.h"
+#include <functional>
+#include <queue>
 //#include <gCamMatrox.h>
 
 
@@ -79,6 +81,17 @@ struct CamList
 	}
 };
 
+struct ImageList
+{
+	int frame;
+	unsigned char* pAddress;
+	ImageList()
+	{
+		frame = 0;
+		pAddress = nullptr;
+	}
+};
+
 class CamCIS
 {
 public:
@@ -100,6 +113,8 @@ private:
 	vector<CamList> _camList;
 	vector<BoardList> _bdList;
 
+	queue<ImageList> qImageList;
+
 	int* _frameIdx = nullptr;
 
 	//module 별로 이미지 Set Cnt
@@ -109,7 +124,22 @@ private:
 	vector<unsigned char*> _imageBufAddress;
 	//unsigned char* _grab_buf;
 
+
+	std::function<void(int)> _callBack;
+
+	void OnCallBack()
+	{
+		if (_callBack != nullptr)
+			_callBack(0);
+	}
+
 public:
+	
+	void RegistCallBack(std::function<void(int)> pCallBack)
+	{
+		_callBack = std::move(pCallBack);
+	}
+
 	void CopyMil(unsigned char * pSrc, void* userData);
 
 	vector<CallBackUserData*> _callBackUserData;
@@ -117,6 +147,8 @@ public:
 	vector<gMatroxTest*> _gMatrox;
 
 	mutex _mutex;
+
+	ImageList CamCIS::GetQueue();
 
 	//클래스 초기화
 	//camCnt : 카메라 총 개수
