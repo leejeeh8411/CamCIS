@@ -3,7 +3,9 @@
 #include <gThreadpool.h>
 #include <functional>
 #include "CamCIS.h"
-#include "Inspect.h"
+#include "InterfaceInspect.h"
+#include "InspectA.h"
+#include "InspectB.h"
 
 class mainWork
 {
@@ -19,11 +21,10 @@ public:
 
 	gThreadPool* _gPoolIns;
 
-	Inspect _inspect;
+	vector<InterfaceInspect*> _vtInspect;
 
-	void AddIns(int frame, int cellid, unsigned char* pImg);
 
-	
+	void AddIns(int camid, int frame, int cellid, unsigned char* pImg, int width, int height);
 	
 };
 

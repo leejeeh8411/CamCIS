@@ -83,11 +83,17 @@ struct CamList
 
 struct ImageList
 {
+	int camId;
 	int frame;
+	int width;
+	int height;
 	unsigned char* pAddress;
 	ImageList()
 	{
+		camId = 0;
 		frame = 0;
+		width = 0;
+		height = 0;
 		pAddress = nullptr;
 	}
 };

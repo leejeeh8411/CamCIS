@@ -138,8 +138,9 @@ void CamCIS::CopyMil(unsigned char * pSrc, void* _userData)
 	int sttX = GetCamData(camNo, moduleNo, CAM_DATA_TYPE::IMG_PTR_X);
 	int sttY = frame * HeightFull * WidthFull;
 	unsigned char* pDst = GetImagePtr(camNo);
+	unsigned char* pCurrentPtrImg = pDst + sttY + sttX;
 
-	SetImage(pSrc, pDst + sttY + sttX, WidthCopy, WidthFull, WidthCopy, HeightFull);
+	SetImage(pSrc, pCurrentPtrImg, WidthCopy, WidthFull, WidthCopy, HeightFull);
 
 	_mutex.lock();
 
@@ -176,8 +177,11 @@ void CamCIS::CopyMil(unsigned char * pSrc, void* _userData)
 			frame, camNo, doneCnt, moduleCnt);
 		_callBackInfo[frame].camInfo.clear();
 		ImageList imgList;
+		imgList.camId = camNo;
 		imgList.frame = _frameIdx[camNo];
-		imgList.pAddress = pDst;
+		imgList.width = WidthFull;
+		imgList.height = HeightFull;
+		imgList.pAddress = pCurrentPtrImg;
 		qImageList.push(imgList);
 		_frameIdx[camNo]++;
 		bInspect = true;

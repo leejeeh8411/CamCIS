@@ -1,17 +1,41 @@
 #include "stdafx.h"
 #include "mainWork.h"
 
+UINT ThreadInspectTemplate(void* _parent, int camid, int frame, int cellid, unsigned char* pImg, int width, int height)
+{
+	mainWork* parent = (mainWork*)_parent;
+
+	
+	InterfaceInspect* inspectInstance = parent->_vtInspect[camid];
+	inspectInstance->InspectWork(frame, cellid, pImg, width, height);
+	
+	return 0;
+}
 
 mainWork::mainWork()
 {
 	_logger = new gLogger("defaultlog", std::string("C:\\Glim\\") + std::string("defaultLog.txt"), false, 23, 59);
 	_logger->setConsoleLevel(G_LOGGER_LEVEL_DEBUG);
 
-	int camNum = 1;
-	int moduleNum = 5;
+	int camNum = 2;
+	int moduleNum = 1;
 
 	camCis.InitClass(camNum, moduleNum);
 	camCis.InitGrabber();
+
+	for (int camNum = 0; camNum < camCis.GetCamNum(); camNum++) {
+		InterfaceInspect* inspectInstance;
+		if (camNum == 0) {
+			inspectInstance = (InterfaceInspect*)new InspectA();
+		}
+		else {
+			inspectInstance = (InterfaceInspect*)new InspectB();
+		}
+		inspectInstance->Init(camCis.GetCamWidth(camNum), camCis.GetCamHeight(camNum));
+		inspectInstance->MakeImageBuf();
+		_vtInspect.emplace_back(inspectInstance);
+	}
+	
 
 	//초기화된 메인버퍼 가져오기
 	unsigned char* pImg1 = camCis.GetImagePtr(0);
@@ -42,9 +66,10 @@ mainWork::mainWork()
 
 mainWork::~mainWork()
 {
-	//camCis.ClearImageBuffer();
+	camCis.ClearImageBuffer();
 }
 
+//카메라 클래스가 이미지가 완성되면 여기로 이벤트
 void mainWork::CisCallBack(int a)
 {
 	_logger->info("cisCallBack");
@@ -53,13 +78,15 @@ void mainWork::CisCallBack(int a)
 	ImageList imgData = camCis.GetQueue();
 
 	int cellid = 0;
-	AddIns(imgData.frame, cellid, imgData.pAddress);
+	AddIns(imgData.camId, imgData.frame, cellid, imgData.pAddress, imgData.width, imgData.height);
 }
 
-void mainWork::AddIns(int frame, int cellid, unsigned char* pImg)
+//스레드풀로 검사에 필요한 정보와 함수 전달
+void mainWork::AddIns(int camid, int frame, int cellid, unsigned char* pImg, int width, int height)
 {
-	_logger->info("add job");
-	_gPoolIns->addJob([this](int _frame, int _cellid, unsigned char* _pImg) {
-		this->_inspect.InspectWork(_frame, _cellid, _pImg); }, frame, cellid, pImg);
+	_logger->info("add job camid:{}", camid);
+
+	_gPoolIns->addJob([this](int _camid, int _frame, int _cellid, unsigned char* _pImg, int _width, int _height) {
+		ThreadInspectTemplate(this, _camid, _frame, _cellid, _pImg, _width, _height); }, camid, frame, cellid, pImg, width, height);
 }
 

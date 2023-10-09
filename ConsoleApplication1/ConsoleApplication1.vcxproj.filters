@@ -33,7 +33,13 @@
     <ClInclude Include="mainWork.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Inspect.h">
+    <ClInclude Include="InterfaceInspect.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InspectA.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InspectB.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,7 +59,13 @@
     <ClCompile Include="mainWork.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Inspect.cpp">
+    <ClCompile Include="InterfaceInspect.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="InspectA.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="InspectB.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
